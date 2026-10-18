@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Realm Court</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gui: #c6c6c6;
+    --gui-light: #ffffff;
+    --gui-dark: #555555;
+    --slot: #1c1c1c;
+    --ink: #2b2b2b;
+    --yellow: #ffff55;
+    --pixel: "Press Start 2P", "Courier New", monospace;
+    --body: "VT323", "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { image-rendering: pixelated; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 0 14px 40px;
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 22px;
+    line-height: 1.2;
+    /* Dirt texture, drawn in CSS/SVG so no image files are needed */
+    background-color: #866043;
+    background-image:
+      linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.28)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23866043'/%3E%3Crect x='1' y='2' width='2' height='2' fill='%23735237'/%3E%3Crect x='6' y='0' width='3' height='2' fill='%2395704d'/%3E%3Crect x='11' y='3' width='2' height='2' fill='%23735237'/%3E%3Crect x='3' y='7' width='3' height='2' fill='%2395704d'/%3E%3Crect x='9' y='8' width='2' height='3' fill='%236a4a30'/%3E%3Crect x='13' y='9' width='2' height='2' fill='%2395704d'/%3E%3Crect x='0' y='12' width='2' height='3' fill='%236a4a30'/%3E%3Crect x='5' y='12' width='3' height='2' fill='%23735237'/%3E%3Crect x='11' y='13' width='3' height='2' fill='%2395704d'/%3E%3Crect x='14' y='5' width='1' height='2' fill='%236a4a30'/%3E%3C/svg%3E");
+    background-size: auto, 64px 64px;
+  }
+
+  /* Grass strip along the top of the page */
+  .grass {
+    position: absolute; left: 0; right: 0; top: 0; height: 42px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 14' shape-rendering='crispEdges'%3E%3Crect width='32' height='6' fill='%235fa83a'/%3E%3Crect x='0' y='6' width='4' height='4' fill='%235fa83a'/%3E%3Crect x='8' y='6' width='4' height='2' fill='%235fa83a'/%3E%3Crect x='16' y='6' width='6' height='6' fill='%235fa83a'/%3E%3Crect x='26' y='6' width='4' height='3' fill='%235fa83a'/%3E%3Crect x='3' y='1' width='2' height='2' fill='%234a8f2c'/%3E%3Crect x='12' y='3' width='3' height='2' fill='%2374c04a'/%3E%3Crect x='20' y='1' width='2' height='2' fill='%234a8f2c'/%3E%3Crect x='27' y='3' width='3' height='2' fill='%2374c04a'/%3E%3C/svg%3E");
+    background-size: 96px 42px;
+    background-repeat: repeat-x;
+    box-shadow: 0 -4px 0 #4a8f2c;
+  }
+
+  .wrap { position: relative; max-width: 600px; margin: 0 auto; padding-top: 64px; }
+
+  header { text-align: center; margin-bottom: 20px; }
+  h1 {
+    margin: 0 0 10px;
+    font-family: var(--pixel);
+    font-weight: 400;
+    font-size: clamp(20px, 6vw, 30px);
+    color: #fff;
+    letter-spacing: 1px;
+    text-shadow: 3px 3px 0 #3a3a3a, 5px 5px 0 rgba(0,0,0,.35);
+  }
+  header p {
+    margin: 0;
+    font-size: 28px;
+    color: var(--yellow);
+    text-shadow: 2px 2px 0 #3f3f15;
+  }
+
+  /* Minecraft inventory-style panel */
+  .card {
+    background: var(--gui);
+    border: 4px solid #000;
+    box-shadow:
+      inset 4px 4px 0 var(--gui-light),
+      inset -4px -4px 0 var(--gui-dark),
+      0 8px 0 rgba(0,0,0,.35);
+    padding: 24px 20px 22px;
+  }
+
+  /* Oak sign style notice */
+  .sign {
+    background: #b8864b;
+    border: 4px solid #4a2f14;
+    box-shadow: inset 3px 3px 0 #d3a766, inset -3px -3px 0 #8a6232;
+    color: #24140a;
+    padding: 10px 12px;
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  label {
+    display: block;
+    margin: 18px 0 6px;
+    font-size: 24px;
+    color: var(--ink);
+  }
+  label .opt { color: #5a5a5a; font-size: 20px; }
+  .hint { margin: 6px 0 0; font-size: 19px; color: #4a4a4a; }
+
+  input, select, textarea {
+    width: 100%;
+    background: var(--slot);
+    color: #fff;
+    border: 2px solid #000;
+    box-shadow: inset 3px 3px 0 #000, inset -3px -3px 0 #5f5f5f;
+    border-radius: 0;
+    padding: 12px 12px;
+    font-family: var(--body);
+    font-size: 22px; /* 16px+ stops iOS zoom */
+    line-height: 1.2;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 5' shape-rendering='crispEdges'%3E%3Crect width='8' height='1' fill='white'/%3E%3Crect x='1' y='1' width='6' height='1' fill='white'/%3E%3Crect x='2' y='2' width='4' height='1' fill='white'/%3E%3Crect x='3' y='3' width='2' height='1' fill='white'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px 10px;
+    padding-right: 40px;
+  }
+  select option, select optgroup { background: #2b2b2b; color: #fff; }
+  textarea { min-height: 140px; resize: vertical; }
+  input::placeholder, textarea::placeholder { color: #8d8d8d; }
+  input:focus, select:focus, textarea:focus {
+    outline: 3px solid var(--yellow);
+    outline-offset: 0;
+  }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 460px) { .row { grid-template-columns: 1fr; gap: 0; } }
+
+  /* Grass-green Minecraft button */
+  button {
+    display: block; width: 100%; margin-top: 26px; padding: 16px 12px;
+    background: #5d9b3a;
+    color: #fff;
+    font-family: var(--pixel);
+    font-size: 13px;
+    text-shadow: 2px 2px 0 #1f3a10;
+    border: 3px solid #000;
+    box-shadow: inset 3px 3px 0 #8fd062, inset -3px -3px 0 #2f5d1a;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  button:hover { background: #6fb546; }
+  button:active { box-shadow: inset 3px 3px 0 #2f5d1a, inset -3px -3px 0 #8fd062; padding-top: 18px; padding-bottom: 14px; }
+  button:disabled { background: #7a7a7a; box-shadow: inset 3px 3px 0 #a0a0a0, inset -3px -3px 0 #4a4a4a; text-shadow: 2px 2px 0 #2a2a2a; cursor: not-allowed; }
+
+  /* Chat-style result message */
+  .msg { display: none; margin-top: 18px; padding: 10px 12px; font-size: 22px; color: #fff; border: 3px solid #000; }
+  .msg.ok { display: block; background: #1f4d14; box-shadow: inset 2px 2px 0 #3a8a28; }
+  .msg.err { display: block; background: #6b1a1a; box-shadow: inset 2px 2px 0 #b53a3a; }
+
+  /* Upload slot */
+  .drop {
+    position: relative; padding: 18px 12px; text-align: center; color: #fff;
+    background: var(--slot); border: 2px dashed #8d8d8d;
+    box-shadow: inset 3px 3px 0 #000, inset -3px -3px 0 #5f5f5f;
+    cursor: pointer; font-size: 22px;
+  }
+  .drop:hover, .drop:focus-within { border-color: var(--yellow); }
+  .drop small { display: block; color: #aaa; font-size: 19px; margin-top: 2px; }
+  .drop input {
+    position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0;
+    cursor: pointer; padding: 0; border: 0; box-shadow: none; font-size: 16px;
+  }
+  .files { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+  .file {
+    position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    background: #8b8b8b; border: 2px solid #000; overflow: hidden;
+    box-shadow: inset 2px 2px 0 #373737, inset -2px -2px 0 #fff;
+  }
+  .file img { width: 100%; height: 100%; object-fit: cover; }
+  .file .vid { font-size: 34px; }
+  .file .sz {
+    position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.72);
+    color: #fff; font-size: 16px; text-align: center; padding: 1px 0;
+  }
+  .file button.x {
+    display: flex; align-items: center; justify-content: center;
+    position: absolute; top: 3px; right: 3px; width: 28px; height: 28px;
+    margin: 0; padding: 0; font-size: 11px; background: #b33; border: 2px solid #000;
+    box-shadow: inset 2px 2px 0 #e66, inset -2px -2px 0 #722;
+  }
+  .file button.x:hover { background: #d44; }
+  .file button.x:active { padding: 0; }
+  .total { margin: 6px 0 0; font-size: 19px; color: #4a4a4a; min-height: 1em; }
+  .total.over { color: #a00000; }
+
+  .hp { position: absolute; left: -9999px; height: 0; width: 0; opacity: 0; }
+
+  .foot {
+    text-align: center; margin: 22px 0 0; font-size: 21px; color: #fff;
+    text-shadow: 2px 2px 0 rgba(0,0,0,.7);
+  }
+</style>
+</head>
+<body>
+<div class="grass" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <h1>REALM COURT</h1>
+    <p>Report a rule violation</p>
+  </header>
+
+  <div class="card">
+    <div class="sign">Reports go privately to Lee and Angel. Being accused doesn't mean guilty, and both sides get to explain. Fake accusations or fake evidence can get you in trouble too.</div>
+
+    <form id="form" novalidate>
+      <div class="row">
+        <div>
+          <label for="reporter">Your Minecraft name</label>
+          <input id="reporter" name="reporter" required maxlength="32" autocomplete="off" placeholder="e.g. Steve123">
+        </div>
+        <div>
+          <label for="discord">Your Discord <span class="opt">(optional)</span></label>
+          <input id="discord" name="discord" maxlength="40" autocomplete="off" placeholder="e.g. steve">
+        </div>
+      </div>
+
+      <label for="player">Player you're reporting</label>
+      <input id="player" name="player" required maxlength="32" autocomplete="off" placeholder="Their Minecraft name">
+
+      <label for="rule">Which rule was broken?</label>
+      <select id="rule" name="rule" required>
+        <option value="" disabled selected>Choose a rule...</option>
+        <optgroup label="Basic rules">
+          <option>Griefing / messing up someone's build</option>
+          <option>Cheats, x-ray, or hacked client</option>
+          <option>Killed someone's pet</option>
+          <option>TNT / lava / fire on someone's base</option>
+          <option>Leaked base coordinates</option>
+          <option>Abusing a glitch for free stuff / advantage</option>
+          <option>Pranks taken too far / being a dick to friends</option>
+        </optgroup>
+        <optgroup label="Zones">
+          <option>Stealing / raiding / griefing in spawn safe zone</option>
+          <option>Permanent base outside the world border</option>
+        </optgroup>
+        <optgroup label="Raiding">
+          <option>Broke or placed blocks to get into a base</option>
+          <option>Destroyed or messed up a base while raiding</option>
+        </optgroup>
+        <optgroup label="Trading &amp; town">
+          <option>Scamming in a trade</option>
+          <option>Built on someone's plot without asking</option>
+          <option>Took everything from community storage</option>
+        </optgroup>
+        <option>Retaliating against someone for reporting</option>
+        <option>Other / not sure</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label for="when">When? <span class="opt">(optional)</span></label>
+          <input id="when" name="when" maxlength="64" placeholder="e.g. Today ~3pm">
+        </div>
+        <div>
+          <label for="dim">Dimension <span class="opt">(optional)</span></label>
+          <select id="dim" name="dim">
+            <option value="">Not sure</option>
+            <option>Overworld</option>
+            <option>Nether</option>
+            <option>The End</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="coords">Location / coords <span class="opt">(optional)</span></label>
+      <input id="coords" name="coords" maxlength="80" autocomplete="off" placeholder="e.g. X 120, Z -340 (or 'my base')">
+      <p class="hint">Only share coords of your own stuff or the spot it happened. Don't include someone else's base coords without their permission.</p>
+
+      <label for="details">What happened?</label>
+      <textarea id="details" name="details" required maxlength="1500" placeholder="Tell us what happened, in order. Be specific."></textarea>
+
+      <label for="files">Photos / videos <span class="opt">(optional, but helps a lot)</span></label>
+      <div class="drop">
+        <span>📷 Tap to add screenshots or videos</span>
+        <small>Up to 5 files, 10 MB total</small>
+        <input id="files" type="file" accept="image/*,video/*" multiple aria-label="Add photos or videos">
+      </div>
+      <ul id="fileList" class="files"></ul>
+      <p id="total" class="total"></p>
+      <p class="hint">Photos are shrunk automatically. For long videos, upload to YouTube or Streamable and paste the link below.</p>
+
+      <label for="evidence">Evidence link <span class="opt">(optional)</span></label>
+      <input id="evidence" name="evidence" type="url" maxlength="300" placeholder="Link to a video or clip (YouTube, Streamable...)">
+
+      <!-- Honeypot: real people never see this; bots fill it in -->
+      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <button id="submit" type="submit">SUBMIT REPORT</button>
+      <div id="msg" class="msg" role="status"></div>
+    </form>
+  </div>
+
+  <p class="foot">Anyone involved in a case can't judge that case.<br>Punishments should fit what happened.</p>
+</div>
+
+<script>
+// ============ SETUP ============
+// 1) Paste your Discord webhook URL between the quotes:
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1561517574880108557/EC2VqkLw3mUok6V-lOGzeJsRIJX6gxFyOrwPwUwjH-Q7ocgOCldjZOH-tK4XV4mJGaFh";
+
+// 2) Optional: Discord user IDs of Lee and Angel so they get pinged.
+//    (Discord > Settings > Advanced > turn on Developer Mode, then right-click a user > Copy User ID.)
+//    Example: ["123456789012345678", "987654321098765432"]. Leave [] for no pings.
+const PING_USER_IDS = [];
+// ===============================
+
+const COOLDOWN_MS = 60 * 1000; // one report per minute per browser
+const MAX_FILES = 5;
+// Discord's default upload limit is about 10 MB per message. Boosted servers allow more,
+// so raise this number if your server has a higher limit.
+const MAX_TOTAL_MB = 10;
+const MAX_TOTAL = MAX_TOTAL_MB * 1024 * 1024;
+const form = document.getElementById("form");
+const btn = document.getElementById("submit");
+const msg = document.getElementById("msg");
+
+function show(kind, text) {
+  msg.className = "msg " + kind;
+  msg.textContent = text;
+}
+
+// Discord rejects field values over 1024 chars and empty values
+const clip = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+// ---------- Photo / video picker ----------
+const picker = document.getElementById("files");
+const listEl = document.getElementById("fileList");
+const totalEl = document.getElementById("total");
+let files = []; // { file, url }
+
+const fmt = (b) => b >= 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+
+// Shrink big phone photos so they fit under Discord's limit
+async function shrink(file) {
+  if (!file.type.startsWith("image/") || file.type === "image/gif" || file.size < 1.5 * 1048576) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1920 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * scale);
+    c.height = Math.round(bmp.height * scale);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.82));
+    if (blob && blob.size < file.size) {
+      return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+    }
+  } catch (_) {}
+  return file;
+}
+
+function render() {
+  listEl.innerHTML = "";
+  files.forEach((item, i) => {
+    const li = document.createElement("li");
+    li.className = "file";
+    if (item.file.type.startsWith("image/")) {
+      const img = new Image();
+      img.src = item.url;
+      img.alt = item.file.name;
+      li.appendChild(img);
+    } else {
+      const v = document.createElement("span");
+      v.className = "vid";
+      v.textContent = "🎬";
+      li.appendChild(v);
+    }
+    const sz = document.createElement("span");
+    sz.className = "sz";
+    sz.textContent = fmt(item.file.size);
+    li.appendChild(sz);
+    const x = document.createElement("button");
+    x.type = "button";
+    x.className = "x";
+    x.textContent = "X";
+    x.setAttribute("aria-label", "Remove " + item.file.name);
+    x.addEventListener("click", () => {
+      URL.revokeObjectURL(item.url);
+      files.splice(i, 1);
+      render();
+    });
+    li.appendChild(x);
+    listEl.appendChild(li);
+  });
+  const total = files.reduce((a, f) => a + f.file.size, 0);
+  totalEl.textContent = files.length
+    ? files.length + " file" + (files.length > 1 ? "s" : "") + ", " + fmt(total) + " of " + MAX_TOTAL_MB + " MB"
+    : "";
+  totalEl.classList.toggle("over", total > MAX_TOTAL);
+}
+
+function clearFiles() {
+  files.forEach((f) => URL.revokeObjectURL(f.url));
+  files = [];
+  render();
+}
+
+picker.addEventListener("change", async () => {
+  const picked = Array.from(picker.files);
+  picker.value = "";
+  msg.className = "msg";
+  for (const raw of picked) {
+    if (files.length >= MAX_FILES) { show("err", "You can attach up to " + MAX_FILES + " files."); break; }
+    if (!/^(image|video)\//.test(raw.type)) { show("err", raw.name + " isn't a photo or video."); continue; }
+    const file = await shrink(raw);
+    files.push({ file, url: URL.createObjectURL(file) });
+  }
+  render();
+});
+// ------------------------------------------
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  msg.className = "msg";
+
+  const f = new FormData(form);
+  if (f.get("website")) return; // bot caught by honeypot
+
+  const g = (k) => (f.get(k) || "").toString().trim();
+  const reporter = g("reporter"), discord = g("discord"), player = g("player");
+  const rule = g("rule"), when = g("when"), dim = g("dim");
+  const coords = g("coords"), details = g("details"), evidence = g("evidence");
+
+  if (!reporter || !player || !rule || !details) {
+    return show("err", "Please fill in all required fields.");
+  }
+  if (evidence && !/^https?:\/\//i.test(evidence)) {
+    return show("err", "The evidence link must start with http:// or https://");
+  }
+  const totalBytes = files.reduce((a, x) => a + x.file.size, 0);
+  if (totalBytes > MAX_TOTAL) {
+    return show("err", "Your files are over " + MAX_TOTAL_MB + " MB. Remove some, or upload a video to YouTube and paste the link instead.");
+  }
+  if (WEBHOOK_URL.startsWith("PASTE_")) {
+    return show("err", "This form isn't set up yet (missing webhook URL).");
+  }
+
+  try {
+    const last = Number(localStorage.getItem("lastReport") || 0);
+    if (Date.now() - last < COOLDOWN_MS) {
+      return show("err", "Please wait a minute before sending another report.");
+    }
+  } catch (_) {}
+
+  const fields = [
+    { name: "Reported by", value: clip(reporter + (discord ? " (Discord: " + discord + ")" : ""), 1024), inline: true },
+    { name: "Accused player", value: clip(player, 1024), inline: true },
+    { name: "Rule broken", value: clip(rule, 1024), inline: false },
+  ];
+  if (when) fields.push({ name: "When", value: clip(when, 1024), inline: true });
+  if (dim) fields.push({ name: "Dimension", value: clip(dim, 1024), inline: true });
+  if (coords) fields.push({ name: "Location", value: clip(coords, 1024), inline: true });
+  fields.push({ name: "What happened", value: clip(details, 1024), inline: false });
+  const evidenceParts = [];
+  if (files.length) evidenceParts.push(files.length + " file" + (files.length > 1 ? "s" : "") + " attached");
+  if (evidence) evidenceParts.push(evidence);
+  fields.push({ name: "Evidence", value: clip(evidenceParts.join("\n") || "None provided", 1024), inline: false });
+
+  const pings = PING_USER_IDS.map((id) => "<@" + id + ">").join(" ");
+
+  btn.disabled = true;
+  btn.textContent = "SENDING...";
+
+  try {
+    const payload = ({
+        username: "Realm Court",
+        content: pings ? pings + " new report" : undefined,
+        // Only the listed judges can be pinged; nothing typed into the form can ping anyone
+        allowed_mentions: { parse: [], users: PING_USER_IDS },
+        embeds: [{
+          title: "⚖️ New Court Report",
+          color: 0xed4245,
+          fields,
+          footer: { text: "Reminder: both sides get to explain. Involved people can't judge." },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+    // Multipart upload: the report text plus any photos/videos in one Discord message
+    const body = new FormData();
+    body.append("payload_json", JSON.stringify(payload));
+    files.forEach((item, i) => body.append("files[" + i + "]", item.file, item.file.name));
+    const res = await fetch(WEBHOOK_URL, { method: "POST", body });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    try { localStorage.setItem("lastReport", String(Date.now())); } catch (_) {}
+    form.reset();
+    clearFiles();
+    show("ok", "Report sent to Lee and Angel. Thanks for reporting!");
+  } catch (err) {
+    show("err", "Couldn't send your report. Please try again in a moment.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "SUBMIT REPORT";
+  }
+});
+</script>
+</body>
+</html>
